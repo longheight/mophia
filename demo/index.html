@@ -2,6 +2,9 @@
 <html lang="ja">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Mophia 鳥のタップ譜面</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -161,6 +164,7 @@ addEventListener("resize", () => { resize(); if (!G) draw(); });
 
 // 全画面 (ボタンで切り替え。Esc でも戻る)
 const screenEl = document.querySelector(".screen");
+const IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement;
 function setFs(on, pseudo = false) {
   screenEl.classList.toggle("fs", on);
@@ -171,8 +175,11 @@ function setFs(on, pseudo = false) {
 }
 function enterFs() {
   // 全画面の要求が断られる・返事が無いブラウザでは、ページの上いっぱいに広げて代わりにする
-  const req = screenEl.requestFullscreen || screenEl.webkitRequestFullscreen;
+  // iPad / iPhone の Safari は本物の全画面中に連打すると「フルスクリーンでタイプ入力しているようです」の警告を出すので、
+  // 全画面の仕組みは使わずページの上いっぱいに広げる (ホーム画面に追加して開けば、Safari の枠も消える)
   const fallback = () => { if (!fsElement()) setFs(true, true); };
+  if (IOS) return fallback();
+  const req = screenEl.requestFullscreen || screenEl.webkitRequestFullscreen;
   if (!req) return fallback();
   try {
     const p = req.call(screenEl);
